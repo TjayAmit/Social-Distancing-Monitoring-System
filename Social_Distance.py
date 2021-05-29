@@ -1,7 +1,4 @@
-#================================================================
-#  To learn how to Develop Advance YOLOv4 Apps - Then check out:
-#  https://augmentedstartups.info/yolov4release
-#================================================================ 
+
 from ctypes import *
 import math
 import random
@@ -42,11 +39,9 @@ def getRectangleCoordinates(x, y, w, h):
     return xmin, ymin, xmax, ymax
 
 def play_audio_file():
-    """Simple callback function to play a wave file. By default it plays
-    a Ding sound.
-
-    :param str fname: wave file name
-    :return: None
+    """
+    To play a record audio.
+    Advicing the people to follow Social Distancing
     """
     global threadStatus
     ding_wav = wave.open('./Paging.wav', 'rb')
@@ -70,7 +65,7 @@ def drawRectangle(object, img):
     """
     Filter Person in a list of object in a video frame.
     """
-    camDistance = 2
+    camDistance = 1
 
     if len(object) > 0:  						
         centroid_dict = dict() 						
@@ -89,7 +84,7 @@ def drawRectangle(object, img):
             distance = calculateDistance(dx, dy) 	# call function in line 15 to calculate the Euclidean Distance
 
             if camDistance == 2:   # Camera distance for presentation
-                compare = 320
+                compare = 520
             else:                  # For a wide area Monitoring
                 compare = 75
 
@@ -110,25 +105,21 @@ def drawRectangle(object, img):
         
         for idx, box in centroid_dict.items():  # dict (1(key):red(value), 2 blue)  idx - key  box - value
             if idx in red_zone_list:   # if id is in red zone list
-                cv2.rectangle(img, (box[2], box[3]), (box[4], box[5]), (255, 0, 0), 1) # Draw red rectangle for violated object
+                cv2.rectangle(img, (box[2], box[3]), (box[4], box[5]), (255, 0, 0), 2) # Draw red rectangle for violated object
             else:
-                cv2.rectangle(img, (box[2], box[3]), (box[4], box[5]), (0, 255, 0), 1) # CDraw green rectangle
+                cv2.rectangle(img, (box[2], box[3]), (box[4], box[5]), (0, 255, 0), 2) # CDraw green rectangle
 
-		#=================================================================
-    	# 3.3 Purpose : Display Risk Analytics and Show Risk Indicators
-    	#=================================================================        
-        text = "People at Risk: %s" % str(len(red_zone_list)) 			# Count People at Risk
-        location = (15,30)												# Set the location of the displayed text
-        cv2.putText(img, text, location, cv2.FONT_HERSHEY_SIMPLEX, 1, (246,86,86), 2, cv2.LINE_AA)  # Display Text
+        text = "People at Risk: %s" % str(len(red_zone_list)) 			# Display number of people at risk
+        location = (15,30)											
+        cv2.putText(img, text, location, cv2.FONT_HERSHEY_SIMPLEX, 1, (246,86,86), 2, cv2.LINE_AA)  # adding text to open cv
 
-        for check in range(0, len(red_line_list)-1):					# Draw line between nearby bboxes iterate through redlist items
-            start_point = red_line_list[check]                          # Check for Social Distancing Violated
+        for check in range(0, len(red_line_list)-1):					# Draw a line red line between two or more object.
+            start_point = red_line_list[check]                          
             end_point = red_line_list[check+1]
-            check_line_x = abs(end_point[0] - start_point[0])   		# Calculate the line coordinates for x  
-            check_line_y = abs(end_point[1] - start_point[1])			# Calculate the line coordinates for y
-            if (check_line_x < 75) and (check_line_y < 25):				# If both are We check that the lines are below our threshold distance.
-                cv2.line(img, start_point, end_point, (255, 0, 0), 1)   # Only above the threshold lines are displayed. 
-        #=================================================================#
+            check_line_x = abs(end_point[0] - start_point[0])   		# get the coordinates for x axis
+            check_line_y = abs(end_point[1] - start_point[1])			# get the coordinates for y axis
+            if (check_line_x < 75) and (check_line_y < 25):				# check if social distance is violated then draw the a red line between the two object if true
+                cv2.line(img, start_point, end_point, (255, 0, 0), 2)   
     return img
 
 
@@ -138,7 +129,7 @@ altNames = None
 
 
 
-def YOLO():
+def TU_DISTANCIA():
     """
     Perform Object detection
     """
@@ -155,11 +146,6 @@ def YOLO():
     if not os.path.exists(metaPath):
         raise ValueError("Invalid data file path `" +
                          os.path.abspath(metaPath)+"`")
-    # if netMain is None:
-    #     netMain = darknet.load_net_custom(configPath.encode(
-    #         "ascii"), weightPath.encode("ascii"), 0, 1)  # batch size = 1
-    # if metaMain is None:
-    #     metaMain = darknet.load_meta(metaPath.encode("ascii"))
     network, class_names, class_colors = darknet.load_network(configPath,  metaPath, weightPath, batch_size=1)
     if altNames is None:
         try:
@@ -181,25 +167,25 @@ def YOLO():
                     pass
         except Exception:
             pass
-    cap = cv2.VideoCapture(0)
-    # cap = cv2.VideoCapture("pedestrians.mp4")
-    frame_width = int(cap.get(3))
-    frame_height = int(cap.get(4))
-    new_height, new_width = frame_height , frame_width 
-    # print("Video Reolution: ",(width, height))
+    # cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture("pedestrians.mp4")
+    width = int(cap.get(3))
+    height = int(cap.get(4))
+    new_height, new_width =  800 , 1200 # Use for Live video
+    # new_height, new_width =  height // 2 , width // 2 # use for recorded video
 
+    # Save the capture video.
     out = cv2.VideoWriter("./Demo/pedestrian_output.avi", cv2.VideoWriter_fourcc(*"MJPG"), 10.0,(new_width, new_height))
     
-    # print("Starting the YOLO loop...")
 
-    # Create an image we reuse for each detect
+    # For each detect create an image.
     darknet_image = darknet.make_image(new_width, new_height, 3)
     
     while True:
         prev_time = time.time()
         ret, frame_read = cap.read()
-        # Check if frame present :: 'ret' returns True if frame present, otherwise break the loop.
-        if not ret:
+
+        if not ret: #if frame is not present or no return end the task
             break
 
         frame_rgb = cv2.cvtColor(frame_read, cv2.COLOR_BGR2RGB)
@@ -207,18 +193,18 @@ def YOLO():
 
         darknet.copy_image_from_bytes(darknet_image,frame_resized.tobytes())
 
-        # detections = darknet.detect_image(netMain, metaMain, darknet_image, thresh=0.25)
         detections = darknet.detect_image(network, class_names, darknet_image, thresh=0.25)
         image = drawRectangle(detections, frame_resized)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        # print(1/(time.time()-prev_time))
-        cv2.imshow('Demo', image)
-        cv2.waitKey(3)
+        cv2.imshow('Tu Distancia', image)
+        key = cv2.waitKey(1)
+        if key == ord('q'): 
+            break
         out.write(image)
 
     cap.release()
     out.release()
-    print(":::Video Write Completed")
+    print("Tu Distancia :: Video has been Save") #Console print if video has complete recorded.
 
 if __name__ == "__main__":
-    YOLO()
+    TU_DISTANCIA()
