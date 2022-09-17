@@ -1,1 +1,1 @@
-# Distance-Detection
+# Social Distancing Monitoring - Object Detection
