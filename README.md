@@ -1,4 +1,4 @@
-# Social Distancing Monitoring - Object Detection
+# Social Distancing Monitoring System - Object Detection
 
 CAPSTONE PROJECT
 
